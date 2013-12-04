@@ -5,17 +5,39 @@ class StickyThumb
 	private $width;
 	private $height;
 	private $mode;
+	private $scaleUp;
 
-	public function __construct( $width, $height, $mode ){
+	public function __construct( $width, $height, $mode, $scaleUp=true ){
 	
 		$this->width = $width;
 		$this->height = $height;
 		$this->mode = $mode;
+		$this->scaleUp = $scaleUp;
 	}
 	
 	private function getFormatIn( $fileIn ){
-	
-		return strtolower( end( explode( '.', $fileIn ) ) );
+
+		if( function_exists( 'exif_imagetype' ) ){
+			$exifType = @exif_imagetype( $fileIn );
+		}
+		else{
+			$exifType = null;
+		}
+		
+		switch( $exitType ){
+
+			case IMAGETYPE_GIF:
+				return 'gif';
+
+			case IMAGETYPE_JPEG:
+				return 'jpg';
+
+			case IMAGETYPE_PNG:
+				return 'png';
+
+			default:
+				return strtolower( end( explode( '.', $fileIn ) ) );
+		}
 	}
 	
 	private function getFormatOut( $fileOut ){
@@ -62,6 +84,10 @@ class StickyThumb
 				$imageOut = imagecreatetruecolor( $widthOut, $heightOut );
 				
 				$scale = max( $this->width / (float)$widthIn, $this->height / (float)$heightIn );
+
+				if( !$this->scaleUp ){
+					$scale = min( $scale, 1 );
+				}
 				
 				$widthScale = floor( $widthIn * $scale );
 				$heightScale = floor( $heightIn * $scale );
@@ -81,6 +107,10 @@ class StickyThumb
 			case'fit':
 			
 				$scale = min( $this->width / (float)$widthIn, $this->height / (float)$heightIn );
+
+				if( !$this->scaleUp ){
+					$scale = min( $scale, 1 );
+				}
 				
 				$widthOut = floor( $widthIn * $scale );
 				$heightOut = floor( $heightIn * $scale );
