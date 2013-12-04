@@ -23,9 +23,13 @@ class StickyThumb
 		return strtolower( end( explode( '.', $fileOut ) ) );
 	}
 	
-	private function getImageIn( $fileIn ){
+	private function getImageIn( $fileIn, $format = null ){
+
+		if( !$format ){
+			$format = $this->getFormatIn( $fileIn );
+		}
 	
-		switch( $this->getFormatIn( $fileIn ) ){
+		switch( $format ){
 		
 			case'png':
 				return imagecreatefrompng( $fileIn );
@@ -41,8 +45,8 @@ class StickyThumb
 		}
 	}
 
-	public function makeThumb( $fileIn, $fileOut ){
-	
+	public function makeThumb( $fileIn, $fileOut, $format = null ){
+
 		$imageIn = $this->getImageIn( $fileIn );
 		
 		$widthIn = imagesx( $imageIn );
@@ -96,7 +100,11 @@ class StickyThumb
 				break;
 		}
 		
-		switch( $this->getFormatOut( $fileOut ) ){
+		if( !$format ){
+			$format = $this->getFormatOut( $fileOut );
+		}
+		
+		switch( $format ){
 		
 			case'png':
 				imagepng( $imageOut, $fileOut );
