@@ -7,32 +7,33 @@ class StickyThumb
 	private $mode;
 	private $scaleUp;
 
-	public function __construct( $width, $height, $mode, $scaleUp=true ){
+	public function __construct( $width, $height, $mode, $scaleUp=true, $backgroundColor=0xffffff ){
 	
 		$this->width = $width;
 		$this->height = $height;
 		$this->mode = $mode;
 		$this->scaleUp = $scaleUp;
+		$this->backgroundColor = $backgroundColor;
 	}
 	
 	private function getFormatIn( $fileIn ){
 
-		if( function_exists( 'exif_imagetype' ) ){
-			$exifType = @exif_imagetype( $fileIn );
-		}
-		else{
-			$exifType = null;
-		}
+		$info = getimagesize( $fileIn );
+		$mime = @$info['mime'];
+		$mimeParts = explode('/',$mime);
+		$mimeLastPart = strtolower( end( $mimeParts ) );
 		
-		switch( $exitType ){
+		switch( $mimeLastPart ){
 
-			case IMAGETYPE_GIF:
+			case 'gif':
 				return 'gif';
 
-			case IMAGETYPE_JPEG:
+			case 'jpg':
+			case 'jpeg':
+			case 'pjpeg':
 				return 'jpg';
 
-			case IMAGETYPE_PNG:
+			case 'png':
 				return 'png';
 
 			default:
@@ -67,9 +68,9 @@ class StickyThumb
 		}
 	}
 
-	public function makeThumb( $fileIn, $fileOut, $format = null ){
+	public function makeThumb( $fileIn, $fileOut, $formatIn = null, $formatOut = null ){
 
-		$imageIn = $this->getImageIn( $fileIn );
+		$imageIn = $this->getImageIn( $fileIn, $formatIn );
 		
 		$widthIn = imagesx( $imageIn );
 		$heightIn = imagesy( $imageIn );
@@ -82,6 +83,7 @@ class StickyThumb
 				$heightOut = $this->height;
 				
 				$imageOut = imagecreatetruecolor( $widthOut, $heightOut );
+				imagefilledrectangle( $imageOut, 0, 0, $widthOut, $heightOut, $this->backgroundColor );
 				
 				$scale = max( $this->width / (float)$widthIn, $this->height / (float)$heightIn );
 
@@ -116,6 +118,7 @@ class StickyThumb
 				$heightOut = floor( $heightIn * $scale );
 				
 				$imageOut = imagecreatetruecolor( $widthOut, $heightOut );
+				imagefilledrectangle( $imageOut, 0, 0, $widthOut, $heightOut, $this->backgroundColor );
 				
 				imagecopyresampled( 
 					$imageOut, 
@@ -130,11 +133,11 @@ class StickyThumb
 				break;
 		}
 		
-		if( !$format ){
-			$format = $this->getFormatOut( $fileOut );
+		if( !$formatOut ){
+			$formatOut = $this->getFormatOut( $fileOut );
 		}
 		
-		switch( $format ){
+		switch( $formatOut ){
 		
 			case'png':
 				imagepng( $imageOut, $fileOut );

@@ -51,6 +51,38 @@ if( isset($_GET['download'] ) ){
 				?>
 			</p>
 			<p>
+				<?
+				$sizeUp = ( @$_GET['sizeUp'] ) != 'no';
+
+				$sizeUpIsDefault = $sizeUp == true;
+				?>
+				<label>Upsizeing</label><br/>
+				<input type="hidden" name="sizeUp" value="no" />
+				<label for="sizeUp">
+					<input id="sizeUp" type="checkbox" name="sizeUp" value="yes" <? if( $sizeUp ){ ?>checked="checked" <? } ?> />
+					Upsize small images
+				</label>
+			</p>
+			<p>
+				<?
+				if( empty( $_GET['backgroundColor'] ) ){
+					$backgroundColor = 0xffffff;
+				}
+				else{
+					$backgroundColor = hexdec( $_GET['backgroundColor'] );
+				}
+
+				$backgroundColorIsDefault = $backgroundColor == 0xffffff;
+
+				$backgroundColorHex = str_pad( dechex( $backgroundColor ), 6, '0', STR_PAD_LEFT );
+
+				?>
+				<label>Background color</label><br/>
+				<label for="backgroundColor">
+					<input id="backgroundColor" type="text" name="backgroundColor" value="<?=$backgroundColorHex?>" />
+				</label>
+			</p>			
+			<p>
 				<input type="submit" value="Try it!"/>
 				<input type="button" value="Download the PHP class file!" onclick="location='index.php?download';"/>
 			</p>
@@ -63,13 +95,28 @@ if( isset($_GET['download'] ) ){
 				
 				include'StickyThumb.class.php';
 				
-				$sticky = new StickyThumb( $_GET['width'], $_GET['height'], $_GET['mode'] );
+				$sticky = new StickyThumb( $_GET['width'], $_GET['height'], $_GET['mode'], $sizeUp, $backgroundColor );
 				$sticky->makeThumb( $_GET['inFile'], $_GET['outFile'] );
 				
 				?>
 				<pre>
-$thumb = new StickyThumb( <?=$_GET['width']?>, <?=$_GET['height']?>, '<?=$_GET['mode']?>' );
-$thumb->makeThumb( <? var_export( $_GET['inFile'] )?>, <? var_export( $_GET['outFile'])?> );
+$thumb = new StickyThumb( <?=$_GET['width']?>, <?=$_GET['height']?>, '<?=$_GET['mode']?>'<?
+
+	if( !$sizeUpIsDefault || !$backgroundColorIsDefault ){
+
+		?>, <? var_export( $sizeUp )?><?
+	}
+
+	if( !$backgroundColorIsDefault ){
+		?>, 0x<?=$backgroundColorHex?> );<?
+	}
+
+	?> );<?
+
+echo "\n"
+
+?>$thumb->makeThumb( <? var_export( $_GET['inFile'] )?>, <? var_export( $_GET['outFile'])?> );
+
 				</pre>
 				<p>
 					<img src="<?=$_GET['outFile']?>"/><br/>
